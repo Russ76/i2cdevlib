@@ -37,22 +37,22 @@ THE SOFTWARE.
 #ifndef _MPU6050_H_
 #define _MPU6050_H_
 
-#include "helper_3dmath.h"
 #include "I2Cdev.h"
 
 // supporting link:  http://forum.arduino.cc/index.php?&topic=143444.msg1079517#msg1079517
 // also: http://forum.arduino.cc/index.php?&topic=141571.msg1062899#msg1062899s
 
-#undef pgm_read_byte
-#define pgm_read_byte(addr) (*(const unsigned char *)(addr))
+#ifdef __AVR__
+#include <avr/pgmspace.h>
+#else
+#define PROGMEM /* empty */
+#define pgm_read_byte(x) (*(x))
+#define pgm_read_word(x) (*(x))
+#define pgm_read_float(x) (*(x))
+#define PSTR(STR) STR
+#endif
 
-//#define PROGMEM /* empty */
-//#define pgm_read_byte(x) (*(x))
-//#define pgm_read_word(x) (*(x))
-//#define pgm_read_float(x) (*(x))
-//#define PSTR(STR) STR
 
-#define MPU6050_INCLUDE_DMP_MOTIONAPPS20
 #define MPU6050_ADDRESS_AD0_LOW     0x68 // address pin low (GND), default for InvenSense evaluation board
 #define MPU6050_ADDRESS_AD0_HIGH    0x69 // address pin high (VCC)
 #define MPU6050_DEFAULT_ADDRESS     MPU6050_ADDRESS_AD0_LOW
@@ -437,8 +437,6 @@ class MPU6050 {
     public:
         MPU6050();
         MPU6050(uint8_t address);
-
-        void ReadRegister(uint8_t reg, uint8_t *data, uint8_t len);
 
         void initialize();
         bool testConnection();
@@ -1025,10 +1023,6 @@ class MPU6050 {
             void dmpOverrideQuaternion(long *q);
             uint16_t dmpGetFIFOPacketSize();
         #endif
-
-    void CalibrateGyro(uint8_t Loops = 15); // Fine tune after setting offsets with less Loops.
-    void CalibrateAccel(uint8_t Loops = 15);// Fine tune after setting offsets with less Loops.
-    void PID(uint8_t ReadAddress, float kP,float kI, uint8_t Loops);  // Does the
 
     private:
         uint8_t devAddr;
